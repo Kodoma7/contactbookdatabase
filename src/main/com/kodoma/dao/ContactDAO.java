@@ -17,6 +17,7 @@ import static main.com.kodoma.util.Procedures.*;
  */
 public class ContactDAO extends Observable implements DAO<User> {
     private Connection connection;
+    public static volatile ContactDAO instance;
     private Mapper mapper = new Mapper();
     private int userID;
 
@@ -27,20 +28,22 @@ public class ContactDAO extends Observable implements DAO<User> {
         connection = pool.getConnection();
     }
 
-
-    public static ContactDAO instance;
-
     private ContactDAO() {
         initialize();
     }
 
     public static ContactDAO getInstance() {
-        if (instance == null) {
-            instance = new ContactDAO();
+        ContactDAO localInstance = instance;
+        if (localInstance == null) {
+            synchronized (ContactDAO.class) {
+                localInstance = instance;
+                if (localInstance == null) {
+                    instance = localInstance = new ContactDAO();
+                }
+            }
         }
-        return instance;
+        return localInstance;
     }
-
 
     @Override
     public void setObserver(Observer o) {
